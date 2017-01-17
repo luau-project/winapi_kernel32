@@ -1,19 +1,29 @@
+# Overview
+
+*winapi_kernel32* is a library to allow the Lua programmer
+to interface with the underlying WINAPI Kernel32.lib. Also, this library
+has been tested with Lua 5.1.5, 5.2.4 and 5.3.3.
+
+**Note**: Due the huge amount of functions available in the Kernel32.lib,
+this is going to take a considerable time of work to bind them all,
+which is going to happen in a lot of releases.
+
 # Functions
 
-- [CloseHandle](#CloseHandle)
-- [CreateToolhelp32Snapshot](#CreateToolhelp32Snapshot)
-- [GetLastError](#GetLastError)
-- [Module32First](#Module32First)
-- [Module32Next](#Module32Next)
-- [OpenProcess](#OpenProcess)
-- [ReadBytes](#ReadBytes)
-- [ReadCString](#ReadCString)
-- [ReadInt16](#ReadInt16)
-- [ReadInt32](#ReadInt32)
-- [ReadInt64](#ReadInt64)
-- [ReadInt8](#ReadInt8)
-- [SetLastError](#SetLastError)
-- [Sleep](#Sleep)
+- [CloseHandle](#closehandle)
+- [CreateToolhelp32Snapshot](#createtoolhelp32snapshot)
+- [GetLastError](#getlasterror)
+- [Module32First](#module32first)
+- [Module32Next](#module32next)
+- [OpenProcess](#openprocess)
+- [ReadBytes](#readbytes)
+- [ReadCString](#readcstring)
+- [ReadInt16](#readint16)
+- [ReadInt32](#readint32)
+- [ReadInt64](#readint64)
+- [ReadInt8](#readint8)
+- [SetLastError](#setlasterror)
+- [Sleep](#sleep)
 
 ## CloseHandle
 
