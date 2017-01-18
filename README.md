@@ -219,12 +219,12 @@ ReadProcessMemory.
 **Summary**: Reads 64 bits from the process
 
 ```lua
-local kernel64 = require("winapi_kernel64")
+local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
 -- BOOL, INT64, SIZE_T
-local result, data, numberOfBytesRead = kernel64.ReadInt64(
+local result, data, numberOfBytesRead = kernel32.ReadInt64(
     hProcess, -- HANDLE hProcess
     0x40000000, -- number lpBaseAddress
 )
