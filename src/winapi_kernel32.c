@@ -1,4 +1,5 @@
 #include <winapi_kernel32.h>
+#include <winapi_shared.h>
 
 #include <Windows.h>
 #include <TlHelp32.h>
@@ -7,8 +8,8 @@
 #include <luaconf.h>
 #include <lauxlib.h>
 
-#ifndef WINAPI_KERNEL32_VERSION
-#define WINAPI_KERNEL32_VERSION "0.0.1-0"
+#ifndef LUA_WINAPI_KERNEL32_VERSION
+#define LUA_WINAPI_KERNEL32_VERSION "0.0.1-1"
 #endif
 
 #if LUA_VERSION_NUM < 502
@@ -30,9 +31,8 @@ static int lua_OpenProcess(lua_State *L)
 
 static int lua_CloseHandle(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
-    lua_pushboolean(L, CloseHandle(*handle));
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_pushboolean(L, CloseHandle(handle));
     return 1;
 }
 
@@ -71,13 +71,13 @@ static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
     lua_settable(L, -3);
 
     lua_pushstring(L, "modBaseAddr");
-    if (sizeof(void *) == 4)
+    if (sizeof(void *) == 8)
     {
-        lua_pushinteger(L, (DWORD)(me->modBaseAddr));
+        lua_pushinteger(L, (INT64)(me->modBaseAddr));
     }
     else
     {
-        lua_pushinteger(L, (long long)(me->modBaseAddr));
+        lua_pushinteger(L, (INT32)(me->modBaseAddr));
     }
     lua_settable(L, -3);
 
@@ -103,11 +103,10 @@ static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
 
 static int lua_Module32First(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     MODULEENTRY32 me;
     me.dwSize = sizeof(MODULEENTRY32);
-    BOOL result = Module32First(*handle, &me);
+    BOOL result = Module32First(handle, &me);
     lua_pushboolean(L, result);
     
     if (result)
@@ -124,11 +123,10 @@ static int lua_Module32First(lua_State *L)
 
 static int lua_Module32Next(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     MODULEENTRY32 me;
     me.dwSize = sizeof(MODULEENTRY32);
-    BOOL result = Module32Next(*handle, &me);
+    BOOL result = Module32Next(handle, &me);
     lua_pushboolean(L, result);
     
     if (result)
@@ -165,16 +163,15 @@ static int lua_Sleep(lua_State *L)
 
 static int lua_ReadBytes(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     lua_Integer count = luaL_checkinteger(L, 3);
 
     if (count < 0)
     {
+        lua_pushboolean(L, FALSE);
         lua_pushnil(L);
-        lua_pushnil(L);
-        lua_pushnil(L);
+        lua_pushinteger(L, 0);
     }
     else
     {
@@ -182,7 +179,7 @@ static int lua_ReadBytes(lua_State *L)
 
         BYTE *buffer = malloc(size);
         SIZE_T bytesRead;
-        lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
+        lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
         lua_pushlstring(L, buffer, size);
         free(buffer);
         lua_pushinteger(L, bytesRead);
@@ -193,16 +190,15 @@ static int lua_ReadBytes(lua_State *L)
 
 static int lua_ReadCString(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     lua_Integer count = luaL_checkinteger(L, 3);
 
     if (count < 0)
     {
+        lua_pushboolean(L, FALSE);
         lua_pushnil(L);
-        lua_pushnil(L);
-        lua_pushnil(L);
+        lua_pushinteger(L, 0);
     }
     else
     {
@@ -210,7 +206,7 @@ static int lua_ReadCString(lua_State *L)
 
         BYTE *buffer = malloc(size);
         SIZE_T bytesRead;
-        lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
+        lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
         lua_pushstring(L, buffer);
         free(buffer);
         lua_pushinteger(L, bytesRead);
@@ -221,14 +217,13 @@ static int lua_ReadCString(lua_State *L)
 
 static int lua_ReadInt8(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     SIZE_T size = sizeof(INT8);
     
     INT8 value;
     SIZE_T bytesRead;
-    lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
+    lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
     lua_pushinteger(L, value);
     lua_pushinteger(L, bytesRead);
 
@@ -237,14 +232,13 @@ static int lua_ReadInt8(lua_State *L)
 
 static int lua_ReadInt16(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     SIZE_T size = sizeof(INT16);
     
     INT16 value;
     SIZE_T bytesRead;
-    lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
+    lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
     lua_pushinteger(L, value);
     lua_pushinteger(L, bytesRead);
 
@@ -253,14 +247,13 @@ static int lua_ReadInt16(lua_State *L)
 
 static int lua_ReadInt32(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     SIZE_T size = sizeof(INT32);
     
     INT32 value;
     SIZE_T bytesRead;
-    lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
+    lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
     lua_pushinteger(L, value);
     lua_pushinteger(L, bytesRead);
 
@@ -269,14 +262,13 @@ static int lua_ReadInt32(lua_State *L)
 
 static int lua_ReadInt64(lua_State *L)
 {
-    void *userdata = lua_touserdata(L, 1);
-    HANDLE *handle = (HANDLE *)userdata;
+    HANDLE handle = lua_toHANDLE(L, 1);
     lua_Integer address = luaL_checkinteger(L, 2);
     SIZE_T size = sizeof(INT64);
     
     INT64 value;
     SIZE_T bytesRead;
-    lua_pushboolean(L, ReadProcessMemory(*handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
+    lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)&value, size, &bytesRead));
     lua_pushinteger(L, (lua_Integer)value);
     lua_pushinteger(L, bytesRead);
 
@@ -307,16 +299,16 @@ LUA_WINAPI_KERNEL32 int luaopen_winapi_kernel32(lua_State *L)
     
     lua_pushstring(L, "NULL");
     void *nullUserdata = lua_newuserdata(L, sizeof(void *));
-    ZeroMemory(nullUserdata, sizeof(void *));
+    memset(nullUserdata, 0, sizeof(void *));
     lua_settable(L, -3);
 
     lua_pushstring(L, "INVALID_HANDLE_VALUE");
     void *ihvUserData = lua_newuserdata(L, sizeof(HANDLE));
-    *(HANDLE *)ihvUserData = INVALID_HANDLE_VALUE;
+    *((HANDLE *)ihvUserData) = INVALID_HANDLE_VALUE;
     lua_settable(L, -3);
     
-    lua_pushstring(L, "__VERSION");
-    lua_pushstring(L, WINAPI_KERNEL32_VERSION);
+    lua_pushstring(L, "_VERSION");
+    lua_pushstring(L, LUA_WINAPI_KERNEL32_VERSION);
     lua_settable(L, -3);
 
     return 1;
