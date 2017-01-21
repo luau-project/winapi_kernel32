@@ -320,6 +320,7 @@ local hProcess = -- previously acquired HANDLE
 local MEM_RESERVE = 0x00002000
 local PAGE_READWRITE = 0x4
 
+-- integer
 local remoteMemory = kernel32.VirtualAllocEx(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpAddress
@@ -337,7 +338,8 @@ local kernel32 = require("winapi_kernel32")
 local hProcess = -- previously acquired HANDLE
 local MEM_RELEASE = 0x8000
 
-local remoteMemory = kernel32.VirtualFreeEx(
+-- BOOL
+local result = kernel32.VirtualFreeEx(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpAddress
     0x100, -- SIZE_T dwSize
