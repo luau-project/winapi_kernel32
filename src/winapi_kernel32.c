@@ -33,7 +33,7 @@ static lua_Integer pointerToInteger(void *p)
     return res;
 }
 
-static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
+static int lua_pushMODULEENTRY32(lua_State *L, PMODULEENTRY32 me)
 {
     lua_newtable(L);
 
@@ -81,6 +81,88 @@ static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
     return 1;
 }
 
+static int lua_pushTHREADENTRY32(lua_State *L, PTHREADENTRY32 te)
+{
+    lua_newtable(L);
+
+    lua_pushstring(L, "dwSize");
+    lua_pushinteger(L, te->dwSize);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "cntUsage");
+    lua_pushinteger(L, te->cntUsage);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32ThreadID");
+    lua_pushinteger(L, te->th32ThreadID);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32OwnerProcessID");
+    lua_pushinteger(L, te->th32OwnerProcessID);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "tpBasePri");
+    lua_pushinteger(L, te->tpBasePri);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "tpDeltaPri");
+    lua_pushinteger(L, te->tpDeltaPri);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "dwFlags");
+    lua_pushinteger(L, te->dwFlags);
+    lua_settable(L, -3);
+
+    return 1;
+}
+
+static int lua_pushPROCESSENTRY32(lua_State *L, PPROCESSENTRY32 pe)
+{
+    lua_newtable(L);
+
+    lua_pushstring(L, "dwSize");
+    lua_pushinteger(L, pe->dwSize);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "cntUsage");
+    lua_pushinteger(L, pe->cntUsage);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32ProcessID");
+    lua_pushinteger(L, pe->th32ProcessID);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32DefaultHeapID");
+    lua_pushinteger(L, pointerToInteger((void*)(pe->th32DefaultHeapID)));
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32ModuleID");
+    lua_pushinteger(L, pe->th32ModuleID);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "cntThreads");
+    lua_pushinteger(L, pe->cntThreads);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "th32ParentProcessID");
+    lua_pushinteger(L, pe->th32ParentProcessID);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "pcPriClassBase");
+    lua_pushinteger(L, pe->pcPriClassBase);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "dwFlags");
+    lua_pushinteger(L, pe->dwFlags);
+    lua_settable(L, -3);
+
+    lua_pushstring(L, "szExeFile");
+    lua_pushstring(L, pe->szExeFile);
+    lua_settable(L, -3);
+
+    return 1;
+}
+
 static int lua_OpenProcess(lua_State *L)
 {
     DWORD dwDesiredAccess = (DWORD)(luaL_checkinteger(L, 1));
@@ -120,7 +202,7 @@ static int lua_Module32First(lua_State *L)
     
     if (result)
     {
-        lua_push_MODULEENTRY32(L, &me);
+        lua_pushMODULEENTRY32(L, &me);
     }
     else
     {
@@ -140,7 +222,88 @@ static int lua_Module32Next(lua_State *L)
     
     if (result)
     {
-        lua_push_MODULEENTRY32(L, &me);
+        lua_pushMODULEENTRY32(L, &me);
+    }
+    else
+    {
+        lua_pushnil(L);
+    }
+
+    return 2;
+}
+
+static int lua_Thread32First(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    THREADENTRY32 te;
+    te.dwSize = sizeof(THREADENTRY32);
+    BOOL result = Thread32First(handle, &te);
+    lua_pushboolean(L, result);
+    
+    if (result)
+    {
+        lua_pushTHREADENTRY32(L, &te);
+    }
+    else
+    {
+        lua_pushnil(L);
+    }
+
+    return 2;
+}
+
+static int lua_Thread32Next(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    THREADENTRY32 te;
+    te.dwSize = sizeof(THREADENTRY32);
+    BOOL result = Thread32Next(handle, &te);
+    lua_pushboolean(L, result);
+    
+    if (result)
+    {
+        lua_pushTHREADENTRY32(L, &te);
+    }
+    else
+    {
+        lua_pushnil(L);
+    }
+
+    return 2;
+}
+
+
+static int lua_Process32First(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(PROCESSENTRY32);
+    BOOL result = Process32First(handle, &pe);
+    lua_pushboolean(L, result);
+    
+    if (result)
+    {
+        lua_pushPROCESSENTRY32(L, &pe);
+    }
+    else
+    {
+        lua_pushnil(L);
+    }
+
+    return 2;
+}
+
+static int lua_Process32Next(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(PROCESSENTRY32);
+    BOOL result = Process32Next(handle, &pe);
+    lua_pushboolean(L, result);
+    
+    if (result)
+    {
+        lua_pushPROCESSENTRY32(L, &pe);
     }
     else
     {
@@ -399,12 +562,25 @@ static int lua_GetProcAddress(lua_State *L)
     return 1;
 }
 
+static int lua_LoadLibraryA(lua_State *L)
+{
+    const char *lpFileName = luaL_checkstring(L, 1);
+    HMODULE hModule = LoadLibraryA(lpFileName);
+    void *userdata = lua_newuserdata(L, sizeof(HMODULE));
+    *((HMODULE *)userdata) = hModule;
+    return 1;
+}
+
 static const struct luaL_Reg winapi_kernel32_f[] = {
     {"OpenProcess", lua_OpenProcess},
     {"CloseHandle", lua_CloseHandle},
     {"CreateToolhelp32Snapshot", lua_CreateToolhelp32Snapshot},
     {"Module32First", lua_Module32First},
     {"Module32Next", lua_Module32Next},
+    {"Thread32First", lua_Thread32First},
+    {"Thread32Next", lua_Thread32Next},
+    {"Process32First", lua_Process32First},
+    {"Process32Next", lua_Process32Next},
     {"GetLastError", lua_GetLastError},
     {"SetLastError", lua_SetLastError},
     {"Sleep", lua_Sleep},
@@ -423,6 +599,7 @@ static const struct luaL_Reg winapi_kernel32_f[] = {
     {"VirtualFreeEx", lua_VirtualFreeEx},
     {"GetModuleHandleA", lua_GetModuleHandleA},
     {"GetProcAddress", lua_GetProcAddress},
+    {"LoadLibraryA", lua_LoadLibraryA},
     {NULL, NULL}
 };
 

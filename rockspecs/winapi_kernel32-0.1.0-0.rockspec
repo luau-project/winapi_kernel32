@@ -21,6 +21,7 @@ build = {
       winapi_kernel32 = {
           sources = { "src/winapi_kernel32.c" },
           incdirs = { "src/" },
+          defines = { "WIN32", "_WIN32", "_MBCS" },
           libraries = { "kernel32" }
       }
    }

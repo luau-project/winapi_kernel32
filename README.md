@@ -15,9 +15,12 @@ which is going to happen in a lot of releases.
 - [GetLastError](#getlasterror)
 - [GetModuleHandleA](#getmodulehandlea)
 - [GetProcAddress](#getprocaddress)
+- [LoadLibraryA](#loadlibrarya)
 - [Module32First](#module32first)
 - [Module32Next](#module32next)
 - [OpenProcess](#openprocess)
+- [Process32First](#process32first)
+- [Process32Next](#process32next)
 - [ReadBytes](#readbytes)
 - [ReadCString](#readcstring)
 - [ReadInt16](#readint16)
@@ -26,6 +29,8 @@ which is going to happen in a lot of releases.
 - [ReadInt8](#readint8)
 - [SetLastError](#setlasterror)
 - [Sleep](#sleep)
+- [Thread32First](#thread32first)
+- [Thread32Next](#thread32next)
 - [VirtualAllocEx](#virtualallocex)
 - [VirtualFreeEx](#virtualfreeex)
 - [WriteBytes](#writebytes)
@@ -86,10 +91,21 @@ local kernel32 = require("winapi_kernel32")
 
 local hModule = -- previously acquired HMODULE
 
--- number
+-- integer
 local FARPROC = kernel32.GetProcAddress(
     hModule, -- HMODULE hModule
     "LoadLibraryA" -- LPCSTR  lpProcName
+)
+```
+
+## LoadLibraryA
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+-- HMODULE
+local FARPROC = kernel32.LoadLibraryA(
+    "user32.dll" -- LPCSTR  lpProcName
 )
 ```
 
@@ -137,6 +153,38 @@ local hProcess = kernel32.OpenProcess(
     false, -- BOOL bInheritHandle
     1234 -- DWORD dwProcessId
 )
+```
+
+## Process32First
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hSnapshot = -- previously acquired HANDLE
+
+local result, pe32 = kernel32.Process32First(
+    hSnapshot -- HANDLE hSnapshot
+)
+
+if (result) then
+    print("process id: ", pe32.th32ProcessID)
+end
+```
+
+## Process32Next
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hSnapshot = -- previously acquired HANDLE
+
+local result, pe32 = kernel32.Process32Next(
+    hSnapshot -- HANDLE hSnapshot
+)
+
+if (result) then
+    print("process id: ", pe32.th32ProcessID)
+end
 ```
 
 ## ReadBytes
@@ -309,6 +357,38 @@ local kernel32 = require("winapi_kernel32")
 kernel32.Sleep(
     1000 -- DWORD dwMilliseconds
 )
+```
+
+## Thread32First
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hSnapshot = -- previously acquired HANDLE
+
+local result, te32 = kernel32.Thread32First(
+    hSnapshot -- HANDLE hSnapshot
+)
+
+if (result) then
+    print("thread id: ", te32.th32ThreadID)
+end
+```
+
+## Thread32Next
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hSnapshot = -- previously acquired HANDLE
+
+local result, te32 = kernel32.Thread32Next(
+    hSnapshot -- HANDLE hSnapshot
+)
+
+if (result) then
+    print("thread id: ", te32.th32ThreadID)
+end
 ```
 
 ## VirtualAllocEx
