@@ -571,6 +571,14 @@ static int lua_LoadLibraryA(lua_State *L)
     return 1;
 }
 
+static int lua_Beep(lua_State *L)
+{
+    lua_Integer dwFreq = luaL_checkinteger(L, 1);
+    lua_Integer dwDuration = luaL_checkinteger(L, 2);
+    lua_pushboolean(L, Beep((DWORD)dwFreq, (DWORD)dwDuration));
+    return 1;
+}   
+
 static const struct luaL_Reg winapi_kernel32_f[] = {
     {"OpenProcess", lua_OpenProcess},
     {"CloseHandle", lua_CloseHandle},
@@ -600,6 +608,7 @@ static const struct luaL_Reg winapi_kernel32_f[] = {
     {"GetModuleHandleA", lua_GetModuleHandleA},
     {"GetProcAddress", lua_GetProcAddress},
     {"LoadLibraryA", lua_LoadLibraryA},
+    {"Beep", lua_Beep},
     {NULL, NULL}
 };
 

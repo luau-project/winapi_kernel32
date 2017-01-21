@@ -10,6 +10,7 @@ which is going to happen in a lot of releases.
 
 # Functions
 
+- [Beep](#beep)
 - [CloseHandle](#closehandle)
 - [CreateToolhelp32Snapshot](#createtoolhelp32snapshot)
 - [GetLastError](#getlasterror)
@@ -38,6 +39,18 @@ which is going to happen in a lot of releases.
 - [WriteInt32](#writeint32)
 - [WriteInt64](#writeint64)
 - [WriteInt8](#writeint8)
+
+## Beep
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+-- BOOL
+local result = kernel32.Beep(
+    750, -- dwFreq
+    300 -- dwDuration
+)
+```
 
 ## CloseHandle
 
