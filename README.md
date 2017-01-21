@@ -47,8 +47,8 @@ local kernel32 = require("winapi_kernel32")
 
 -- BOOL
 local result = kernel32.Beep(
-    750, -- dwFreq
-    300 -- dwDuration
+    750, -- DWORD dwFreq
+    300 -- DWORD dwDuration
 )
 ```
 
@@ -57,10 +57,12 @@ local result = kernel32.Beep(
 ```lua
 local kernel32 = require("winapi_kernel32")
 
-local hHandle = -- previously acquired HANDLE
+local hObject = -- previously acquired HANDLE
 
 -- BOOL
-local result = kernel32.CloseHandle(hHandle)
+local result = kernel32.CloseHandle(
+    hObject -- HANDLE hObject
+)
 ```
 
 ## CreateToolhelp32Snapshot
