@@ -9,7 +9,7 @@
 #include <lauxlib.h>
 
 #ifndef LUA_WINAPI_KERNEL32_VERSION
-#define LUA_WINAPI_KERNEL32_VERSION "0.0.1-1"
+#define LUA_WINAPI_KERNEL32_VERSION "0.1.0-0"
 #endif
 
 #if LUA_VERSION_NUM < 502
@@ -17,33 +17,20 @@
 #define luaL_checkinteger(L, n) (luaL_checkint(L, (n)))
 #endif
 
-static int lua_OpenProcess(lua_State *L)
+static lua_Integer pointerToInteger(void *p)
 {
-    DWORD dwDesiredAccess = (DWORD)(luaL_checkinteger(L, 1));
-    BOOL bInheritHandle = lua_toboolean(L, 2);
-    DWORD dwProcessId = (DWORD)(luaL_checkinteger(L, 3));
-    
-    HANDLE process = OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
-    void *userdata = lua_newuserdata(L, sizeof(HANDLE));
-    *((HANDLE *)userdata) = process;
-    return 1;
-}
+    lua_Integer res;
 
-static int lua_CloseHandle(lua_State *L)
-{
-    HANDLE handle = lua_toHANDLE(L, 1);
-    lua_pushboolean(L, CloseHandle(handle));
-    return 1;
-}
+    if (sizeof(void *) == 8)
+    {
+        res = (INT64)p;
+    }
+    else
+    {
+        res = (INT32)p;
+    }
 
-static int lua_CreateToolhelp32Snapshot(lua_State *L)
-{
-    DWORD dwFlags = (DWORD)(luaL_checkinteger(L, 1));
-    DWORD th32ProcessID = (DWORD)(luaL_checkinteger(L, 2));
-    HANDLE handle = CreateToolhelp32Snapshot(dwFlags, th32ProcessID);
-    void *userdata = lua_newuserdata(L, sizeof(HANDLE));
-    *((HANDLE *)userdata) = handle;
-    return 1;
+    return res;
 }
 
 static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
@@ -71,14 +58,7 @@ static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
     lua_settable(L, -3);
 
     lua_pushstring(L, "modBaseAddr");
-    if (sizeof(void *) == 8)
-    {
-        lua_pushinteger(L, (INT64)(me->modBaseAddr));
-    }
-    else
-    {
-        lua_pushinteger(L, (INT32)(me->modBaseAddr));
-    }
+    lua_pushinteger(L, pointerToInteger((void *)(me->modBaseAddr)));
     lua_settable(L, -3);
 
     lua_pushstring(L, "modBaseSize");
@@ -98,6 +78,35 @@ static int lua_push_MODULEENTRY32(lua_State *L, MODULEENTRY32 *me)
     lua_pushstring(L, me->szExePath);
     lua_settable(L, -3);
 
+    return 1;
+}
+
+static int lua_OpenProcess(lua_State *L)
+{
+    DWORD dwDesiredAccess = (DWORD)(luaL_checkinteger(L, 1));
+    BOOL bInheritHandle = lua_toboolean(L, 2);
+    DWORD dwProcessId = (DWORD)(luaL_checkinteger(L, 3));
+    
+    HANDLE process = OpenProcess(dwDesiredAccess, bInheritHandle, dwProcessId);
+    void *userdata = lua_newuserdata(L, sizeof(HANDLE));
+    *((HANDLE *)userdata) = process;
+    return 1;
+}
+
+static int lua_CloseHandle(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_pushboolean(L, CloseHandle(handle));
+    return 1;
+}
+
+static int lua_CreateToolhelp32Snapshot(lua_State *L)
+{
+    DWORD dwFlags = (DWORD)(luaL_checkinteger(L, 1));
+    DWORD th32ProcessID = (DWORD)(luaL_checkinteger(L, 2));
+    HANDLE handle = CreateToolhelp32Snapshot(dwFlags, th32ProcessID);
+    void *userdata = lua_newuserdata(L, sizeof(HANDLE));
+    *((HANDLE *)userdata) = handle;
     return 1;
 }
 
@@ -177,7 +186,7 @@ static int lua_ReadBytes(lua_State *L)
     {
         SIZE_T size = (SIZE_T)(sizeof(BYTE) * count);
 
-        BYTE *buffer = malloc(size);
+        BYTE *buffer = (BYTE *)(malloc(size));
         SIZE_T bytesRead;
         lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
         lua_pushlstring(L, buffer, size);
@@ -204,7 +213,7 @@ static int lua_ReadCString(lua_State *L)
     {
         SIZE_T size = (SIZE_T)(sizeof(BYTE) * count);
 
-        BYTE *buffer = malloc(size);
+        BYTE *buffer = (BYTE *)(malloc(size));
         SIZE_T bytesRead;
         lua_pushboolean(L, ReadProcessMemory(handle, (LPCVOID)address, (LPVOID)buffer, size, &bytesRead));
         lua_pushstring(L, buffer);
@@ -275,6 +284,121 @@ static int lua_ReadInt64(lua_State *L)
     return 3;
 }
 
+static int lua_WriteBytes(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    SIZE_T length;
+    const char *data = luaL_checklstring(L, 3, &length);
+
+    SIZE_T bytesWritten;
+    lua_pushboolean(L, WriteProcessMemory(handle, (LPVOID)address, (LPCVOID)data, length, &bytesWritten));
+    lua_pushinteger(L, bytesWritten);
+    
+    return 2;
+}
+
+static int lua_WriteInt8(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    INT8 value = (INT8)(luaL_checkinteger(L, 3));
+
+    SIZE_T bytesWritten;
+    lua_pushboolean(L, WriteProcessMemory(handle, (LPVOID)address, (LPCVOID)&value, sizeof(INT8), &bytesWritten));
+    lua_pushinteger(L, bytesWritten);
+    
+    return 2;
+}
+
+static int lua_WriteInt16(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    INT16 value = (INT16)(luaL_checkinteger(L, 3));
+
+    SIZE_T bytesWritten;
+    lua_pushboolean(L, WriteProcessMemory(handle, (LPVOID)address, (LPCVOID)&value, sizeof(INT16), &bytesWritten));
+    lua_pushinteger(L, bytesWritten);
+    
+    return 2;
+}
+
+static int lua_WriteInt32(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    INT32 value = (INT32)(luaL_checkinteger(L, 3));
+
+    SIZE_T bytesWritten;
+    lua_pushboolean(L, WriteProcessMemory(handle, (LPVOID)address, (LPCVOID)&value, sizeof(INT32), &bytesWritten));
+    lua_pushinteger(L, bytesWritten);
+    
+    return 2;
+}
+
+static int lua_WriteInt64(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    INT64 value = (INT64)(luaL_checkinteger(L, 3));
+
+    SIZE_T bytesWritten;
+    lua_pushboolean(L, WriteProcessMemory(handle, (LPVOID)address, (LPCVOID)&value, sizeof(INT64), &bytesWritten));
+    lua_pushinteger(L, bytesWritten);
+    
+    return 2;
+}
+
+static int lua_VirtualAllocEx(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_optinteger(L, 2, 0);
+    lua_Integer size = luaL_checkinteger(L, 3);
+    lua_Integer allocationType = luaL_checkinteger(L, 4);
+    lua_Integer flProtect = luaL_checkinteger(L, 5);
+
+    LPVOID result = VirtualAllocEx(handle, (LPVOID)address, (SIZE_T)size, (DWORD)allocationType, (DWORD)flProtect);
+    lua_pushinteger(L, pointerToInteger(result));
+    
+    return 1;
+}
+
+static int lua_VirtualFreeEx(lua_State *L)
+{
+    HANDLE handle = lua_toHANDLE(L, 1);
+    lua_Integer address = luaL_checkinteger(L, 2);
+    lua_Integer size = luaL_checkinteger(L, 3);
+    lua_Integer dwFreeType = luaL_checkinteger(L, 4);
+    
+    lua_pushboolean(L, VirtualFreeEx(handle, (LPVOID)address, (SIZE_T)size, (DWORD)dwFreeType));
+    
+    return 1;
+}
+
+static int lua_GetModuleHandleA(lua_State *L)
+{
+    const char *lpModuleName = luaL_optstring(L, 1, NULL);
+    HMODULE hModule = GetModuleHandleA(lpModuleName);
+    void *userdata = lua_newuserdata(L, sizeof(HMODULE));
+    *((HMODULE *)userdata) = hModule;
+    return 1;
+}
+
+static int lua_GetProcAddress(lua_State *L)
+{
+    HMODULE hModule = NULL;
+    if (!lua_isnil(L, 1))
+    {
+        void *hModuleUserData = lua_touserdata(L, 1);
+        hModule = *((HMODULE *)hModuleUserData);
+    }
+    const char *lpProcName = luaL_checkstring(L, 2);
+    FARPROC result = GetProcAddress(hModule, lpProcName);
+    lua_pushinteger(L, pointerToInteger((void *)result));
+    return 1;
+}
+
 static const struct luaL_Reg winapi_kernel32_f[] = {
     {"OpenProcess", lua_OpenProcess},
     {"CloseHandle", lua_CloseHandle},
@@ -290,6 +414,15 @@ static const struct luaL_Reg winapi_kernel32_f[] = {
     {"ReadInt16", lua_ReadInt16},
     {"ReadInt32", lua_ReadInt32},
     {"ReadInt64", lua_ReadInt64},
+    {"WriteBytes", lua_WriteBytes},
+    {"WriteInt8", lua_WriteInt8},
+    {"WriteInt16", lua_WriteInt16},
+    {"WriteInt32", lua_WriteInt32},
+    {"WriteInt64", lua_WriteInt64},
+    {"VirtualAllocEx", lua_VirtualAllocEx},
+    {"VirtualFreeEx", lua_VirtualFreeEx},
+    {"GetModuleHandleA", lua_GetModuleHandleA},
+    {"GetProcAddress", lua_GetProcAddress},
     {NULL, NULL}
 };
 

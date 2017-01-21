@@ -13,6 +13,8 @@ which is going to happen in a lot of releases.
 - [CloseHandle](#closehandle)
 - [CreateToolhelp32Snapshot](#createtoolhelp32snapshot)
 - [GetLastError](#getlasterror)
+- [GetModuleHandleA](#getmodulehandlea)
+- [GetProcAddress](#getprocaddress)
 - [Module32First](#module32first)
 - [Module32Next](#module32next)
 - [OpenProcess](#openprocess)
@@ -24,6 +26,13 @@ which is going to happen in a lot of releases.
 - [ReadInt8](#readint8)
 - [SetLastError](#setlasterror)
 - [Sleep](#sleep)
+- [VirtualAllocEx](#virtualallocex)
+- [VirtualFreeEx](#virtualfreeex)
+- [WriteBytes](#writebytes)
+- [WriteInt16](#writeint16)
+- [WriteInt32](#writeint32)
+- [WriteInt64](#writeint64)
+- [WriteInt8](#writeint8)
 
 ## CloseHandle
 
@@ -57,6 +66,31 @@ local kernel32 = require("winapi_kernel32")
 
 -- DWORD dwErrCode
 local error = kernel32.GetLastError()
+```
+
+## GetModuleHandleA
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+-- HMODULE
+local hModule = kernel32.GetModuleHandleA(
+    "kernel32.dll" -- (can be nil) LPCTSTR lpModuleName
+)
+```
+
+## GetProcAddress
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hModule = -- previously acquired HMODULE
+
+-- number
+local FARPROC = kernel32.GetProcAddress(
+    hModule, -- HMODULE hModule
+    "LoadLibraryA" -- LPCSTR  lpProcName
+)
 ```
 
 ## Module32First
@@ -275,4 +309,159 @@ local kernel32 = require("winapi_kernel32")
 kernel32.Sleep(
     1000 -- DWORD dwMilliseconds
 )
+```
+
+## VirtualAllocEx
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+local MEM_RESERVE = 0x00002000
+local PAGE_READWRITE = 0x4
+
+local remoteMemory = kernel32.VirtualAllocEx(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpAddress
+    0x100, -- SIZE_T dwSize
+    MEM_RESERVE, -- DWORD flAllocationType
+    PAGE_READWRITE -- DWORD flProtect 
+)
+```
+
+## VirtualFreeEx
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+local MEM_RELEASE = 0x8000
+
+local remoteMemory = kernel32.VirtualFreeEx(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpAddress
+    0x100, -- SIZE_T dwSize
+    MEM_RELEASE -- DWORD dwFreeType
+)
+```
+
+## WriteBytes
+
+This method is intended to supply a work around
+WriteProcessMemory.
+
+**Summary**: Writes bytes to the process through the data
+passed as a Lua string
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+
+-- BOOL, integer
+local result, bytesWritten = kernel32.WriteBytes(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpBaseAddress
+    "\12\23\244\0\4" -- string data (will write these bytes { 12, 23, 244, 0, 4 })
+)
+
+if (result) then
+    print("number of bytes written: ", bytesWritten)
+end
+```
+
+## WriteInt16
+
+This method is intended to supply a work around
+WriteProcessMemory.
+
+**Summary**: Writes 16 bits to the process
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+
+-- BOOL, integer
+local result, bytesWritten = kernel32.WriteInt16(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpBaseAddress
+    0xFFFF
+)
+
+if (result) then
+    print("number of bytes written: ", bytesWritten)
+end
+```
+
+## WriteInt32
+
+This method is intended to supply a work around
+WriteProcessMemory.
+
+**Summary**: Writes 32 bits to the process
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+
+-- BOOL, integer
+local result, bytesWritten = kernel32.WriteInt32(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpBaseAddress
+    0xFFFF
+)
+
+if (result) then
+    print("number of bytes written: ", bytesWritten)
+end
+```
+
+## WriteInt64
+
+This method is intended to supply a work around
+WriteProcessMemory.
+
+**Summary**: Writes 64 bits to the process
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+
+-- BOOL, integer
+local result, bytesWritten = kernel32.WriteInt64(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpBaseAddress
+    0xFFFF
+)
+
+if (result) then
+    print("number of bytes written: ", bytesWritten)
+end
+```
+
+## WriteInt8
+
+This method is intended to supply a work around
+WriteProcessMemory.
+
+**Summary**: Writes 8 bits to the process
+
+```lua
+local kernel32 = require("winapi_kernel32")
+
+local hProcess = -- previously acquired HANDLE
+
+-- BOOL, integer
+local result, bytesWritten = kernel32.WriteInt8(
+    hProcess, -- HANDLE hProcess
+    0x40000000, -- integer lpBaseAddress
+    0xFFFF
+)
+
+if (result) then
+    print("number of bytes written: ", bytesWritten)
+end
 ```
