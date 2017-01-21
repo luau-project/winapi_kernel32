@@ -94,7 +94,7 @@ local hModule = -- previously acquired HMODULE
 -- integer
 local FARPROC = kernel32.GetProcAddress(
     hModule, -- HMODULE hModule
-    "LoadLibraryA" -- LPCSTR  lpProcName
+    "LoadLibraryA" -- LPCSTR lpProcName
 )
 ```
 
@@ -104,8 +104,8 @@ local FARPROC = kernel32.GetProcAddress(
 local kernel32 = require("winapi_kernel32")
 
 -- HMODULE
-local FARPROC = kernel32.LoadLibraryA(
-    "user32.dll" -- LPCSTR  lpProcName
+local hModule = kernel32.LoadLibraryA(
+    "user32.dll" -- LPCTSTR lpFileName
 )
 ```
 
