@@ -360,15 +360,15 @@ local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
--- BOOL, integer
-local result, bytesWritten = kernel32.WriteBytes(
+-- BOOL, SIZE_T
+local result, numberOfBytesWritten = kernel32.WriteBytes(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
     "\12\23\244\0\4" -- string data (will write these bytes { 12, 23, 244, 0, 4 })
 )
 
 if (result) then
-    print("number of bytes written: ", bytesWritten)
+    print("number of bytes written: ", numberOfBytesWritten)
 end
 ```
 
@@ -384,15 +384,15 @@ local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
--- BOOL, integer
-local result, bytesWritten = kernel32.WriteInt16(
+-- BOOL, SIZE_T
+local result, numberOfBytesWritten = kernel32.WriteInt16(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
     0xFFFF
 )
 
 if (result) then
-    print("number of bytes written: ", bytesWritten)
+    print("number of bytes written: ", numberOfBytesWritten)
 end
 ```
 
@@ -408,15 +408,15 @@ local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
--- BOOL, integer
-local result, bytesWritten = kernel32.WriteInt32(
+-- BOOL, SIZE_T
+local result, numberOfBytesWritten = kernel32.WriteInt32(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
     0xFFFFFFFF
 )
 
 if (result) then
-    print("number of bytes written: ", bytesWritten)
+    print("number of bytes written: ", numberOfBytesWritten)
 end
 ```
 
@@ -432,15 +432,15 @@ local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
--- BOOL, integer
-local result, bytesWritten = kernel32.WriteInt64(
+-- BOOL, SIZE_T
+local result, numberOfBytesWritten = kernel32.WriteInt64(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
     0xFFFFFFFFFF
 )
 
 if (result) then
-    print("number of bytes written: ", bytesWritten)
+    print("number of bytes written: ", numberOfBytesWritten)
 end
 ```
 
@@ -456,14 +456,14 @@ local kernel32 = require("winapi_kernel32")
 
 local hProcess = -- previously acquired HANDLE
 
--- BOOL, integer
-local result, bytesWritten = kernel32.WriteInt8(
+-- BOOL, SIZE_T
+local result, numberOfBytesWritten = kernel32.WriteInt8(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
     0xFF
 )
 
 if (result) then
-    print("number of bytes written: ", bytesWritten)
+    print("number of bytes written: ", numberOfBytesWritten)
 end
 ```
