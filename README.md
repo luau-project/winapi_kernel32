@@ -410,7 +410,7 @@ local hProcess = -- previously acquired HANDLE
 local result, bytesWritten = kernel32.WriteInt32(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
-    0xFFFF
+    0xFFFFFFFF
 )
 
 if (result) then
@@ -434,7 +434,7 @@ local hProcess = -- previously acquired HANDLE
 local result, bytesWritten = kernel32.WriteInt64(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
-    0xFFFF
+    0xFFFFFFFFFF
 )
 
 if (result) then
@@ -458,7 +458,7 @@ local hProcess = -- previously acquired HANDLE
 local result, bytesWritten = kernel32.WriteInt8(
     hProcess, -- HANDLE hProcess
     0x40000000, -- integer lpBaseAddress
-    0xFFFF
+    0xFF
 )
 
 if (result) then
